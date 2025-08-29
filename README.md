@@ -2,84 +2,130 @@
 
 # Disease Prediction 
 
-A simple toolkit for predicting types of chest pain using machine learning models.  
-Includes data preprocessing, model training, evaluation, visualization, and unit tests.
+## Overview
+
+This project provides a complete toolkit to predict chest pain types from heart disease data. It covers data preprocessing, model training, evaluation, and visualization to support robust disease prediction.
 
 
 ## Project Structure
 
-Disease Prediction 1/
+disease-prediction/
+│
 ├── data/
-│   └── heart\_dataset.csv        # Dataset file
+│   └── heart\_dataset.csv            # Input dataset
+│
+├── results/                        # Folder for saving plots and evaluation outputs
+│
 ├── scripts/
-│   ├── preprocessing.py         # Data loading and preprocessing
-│   ├── models.py                # ML models definitions
-│   ├── evaluation.py            # Model evaluation & metrics
-│   ├── visualize.py             # Visualization functions (ROC, Confusion matrix)
-│   └── run\_pipeline.py          # Main script to run training and evaluation
-├── results/                     # Output folder for saved plots
+│   ├── preprocessing.py            # Data cleaning, encoding, scaling
+│   ├── models.py                   # Model definitions (Logistic Regression, Random Forest, SVM)
+│   ├── evaluation.py               # Model evaluation and confusion matrix plotting
+│   ├── visualize.py                # ROC curves, feature importance visualizations
+│   └── run\_pipeline.py             # Script to run the full pipeline end-to-end
+│
 ├── tests/
-│   └── test\_preprocessing.py    # Unit tests for preprocessing
-└── README.md                    # This file
+│   └── test\_preprocessing.py       # Unit tests for preprocessing
+│
+├── requirements.txt
+└── README.md
 
 
-## Setup Instructions
+## Key Components
 
-1. Clone the repository
-   bash
-   git clone <your-repo-url>
-   cd Disease-Prediction-Toolkit
+### 1. Data Preprocessing (`scripts/preprocessing.py`)
+
+- Loads and cleans dataset.
+- Combines chest pain indicator columns into one target.
+- Encodes categorical variables.
+- Scales features.
+- Splits into train/test sets.
+
+### 2. Models (`scripts/models.py`)
+
+- Logistic Regression
+- Random Forest Classifier
+- Support Vector Machine (SVM)
+
+### 3. Evaluation (`scripts/evaluation.py`)
+
+- Prints accuracy, precision, recall, F1-score.
+- Computes ROC AUC (if supported).
+- Saves confusion matrix plots in `results/`.
+
+python
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+from sklearn.metrics import confusion_matrix
+
+def evaluate_model(model, X_test, y_test, model_name):
+    y_pred = model.predict(X_test)
+
+    print(f"\n{model_name} Performance:")
+    print("Accuracy:", accuracy_score(y_test, y_pred))
+    print("Precision (macro):", precision_score(y_test, y_pred, average='macro'))
+    print("Recall (macro):", recall_score(y_test, y_pred, average='macro'))
+    print("F1 Score (macro):", f1_score(y_test, y_pred, average='macro'))
+
+    if hasattr(model, "predict_proba"):
+        y_prob = model.predict_proba(X_test)
+        try:
+            roc_auc = roc_auc_score(y_test, y_prob, multi_class='ovr')
+            print("ROC AUC (OVR):", roc_auc)
+        except ValueError:
+            print("ROC AUC could not be calculated")
+
+    cm = confusion_matrix(y_test, y_pred)
+    plt.figure(figsize=(6, 5))
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
+    plt.title(f"{model_name} - Confusion Matrix")
+
+    os.makedirs("results", exist_ok=True)
+    plt.savefig(f"results/{model_name}_confusion_matrix.png")
+    plt.close()
 
 
-2. Create and activate a Python environment (optional but recommended)
+### 4. Running the Pipeline (`scripts/run_pipeline.py`)
 
-   bash
-   python -m venv venv
-   # Windows
-   venv\Scripts\activate
-   # macOS/Linux
-   source venv/bin/activate
-  
+python
+from preprocessing import preprocess_data
+from models import get_models
+from evaluation import evaluate_model
 
-3. Install required dependencies
+(X_train, X_test, y_train, y_test), le_target = preprocess_data()
+models = get_models()
 
-   bash
-   pip install -r requirements.txt
+for name, model in models.items():
+    print(f"Training {name}...")
+    model.fit(X_train, y_train)
+    evaluate_model(model, X_test, y_test, name)
 
-   If `requirements.txt` is not available, install manually:
 
-   bash
-   pip install pandas scikit-learn matplotlib seaborn
+## Visualizations
 
-4. Place the dataset
-   Ensure `heart_dataset.csv` is placed inside the `data/` folder.
+* Confusion matrices are automatically saved as PNG files inside the `results/` directory.
+* Additional plots like ROC curves and feature importance can be generated using `scripts/visualize.py`.
 
-## Usage
 
-### Run full pipeline
+## How to Run
 
-To preprocess data, train models, and evaluate:
+1. Clone this repository.
+2. Place `heart_dataset.csv` inside the `data/` folder.
+3. Install dependencies:
+
+bash
+pip install -r requirements.txt
+
+4. Run the full pipeline:
 
 bash
 python scripts/run_pipeline.py
 
-### Run unit tests
+5. Review model performance in the console and explore saved plots inside the `results/` directory.
 
-To test data preprocessing:
+## Testing
+
+Run unit tests to validate data preprocessing:
 
 bash
 python -m unittest discover tests
-
-## Scripts Overview
-
-* scripts/preprocessing.py: Loads and preprocesses data.
-* scripts/models.py: Defines ML models.
-* scripts/evaluation.py: Evaluates models and saves metrics and confusion matrices.
-* scripts/visualize.py: Contains visualization utilities.
-* scripts/run_pipeline.py: Runs the full training and evaluation pipeline.
-* tests/test_preprocessing.py: Unit tests for preprocessing.
-
-## Results
-
-Evaluation plots will be saved in the `results/` directory after running the pipeline.
-
