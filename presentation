@@ -1,0 +1,147 @@
+Slide 1: Project Overview — Disease Prediction Toolkit
+
+Objective:
+
+* Predict chest pain types (target: `cp_type`) from patient clinical features.
+
+Dataset Used:
+
+* `heart_dataset.csv` with features like:
+
+  * Age, cholesterol, heart rate, ECG results, etc.
+  * One-hot encoded chest pain columns converted to multiclass target
+
+Models Implemented:
+
+* Logistic Regression
+* Random Forest Classifier
+* Support Vector Machine (SVM)
+
+Key Deliverables:
+
+* Evaluation metrics (Accuracy, F1, AUC)
+* Confusion matrix visualizations
+* Clean pipeline scripts (`preprocessing.py`, `models.py`, etc.)
+
+
+
+
+
+Slide 2: Data Preprocessing Steps
+
+1. Target Label Creation
+
+* Combined these one-hot columns into single target:
+
+  * `cp_asymptomatic`, `cp_atypical angina`, `cp_non-anginal`, `cp_typical angina`
+* Mapped each row to its corresponding pain type
+
+2. Feature Encoding
+
+* Label-encoded categorical columns:
+
+  * `restecg`, `slope`, `thal`
+* Converted `TRUE` / `FALSE` to `1` / `0` for `exang`
+
+3. Scaling & Splitting
+
+* Standardized numerical features using `StandardScaler`
+* Split dataset into train/test (80% / 20%)
+
+✅ All handled in `scripts/preprocessing.py`
+
+
+
+
+
+Slide 3: Machine Learning Models & Training
+
+Models Used:
+
+1. Logistic Regression
+
+   * Linear baseline model, interpretable
+2. Random Forest
+
+   * Ensemble of decision trees, handles non-linearity well
+3. SVM
+
+   * Powerful margin-based classifier, with probability support enabled
+
+Training Script: `scripts/run_pipeline.py`
+
+python
+from preprocessing import preprocess_data
+from models import get_models
+from evaluation import evaluate_model
+
+(X_train, X_test, y_train, y_test), le_target = preprocess_data()
+models = get_models()
+
+for name, model in models.items():
+    model.fit(X_train, y_train)
+    evaluate_model(model, X_test, y_test, name)
+
+
+✅ All models trained on standardized features
+✅ Results printed and saved as visuals
+
+
+
+
+
+Slide 4: Evaluation Metrics & Visualizations
+
+Evaluation Metrics per Model:
+
+* Accuracy
+* Precision (macro)
+* Recall (macro)
+* F1 Score (macro)
+* ROC AUC (for models supporting `predict_proba`)
+
+Visual Output (in `/results/`):
+
+* Confusion Matrix (`model_name_confusion_matrix.png`)
+* Optional:
+
+  * ROC Curve (`plot_roc_curve`)
+  * Feature Importance (`plot_feature_importance`) for Random Forest
+
+Insights:
+
+* Random Forest performed best on F1 Score
+* SVM underperformed due to dataset size
+* Logistic Regression showed consistent, interpretable results
+
+
+
+
+
+Slide 5: Testing, Structure, and Future Work
+
+Testing:
+
+* Unit test validates preprocessing
+* File: `tests/test_preprocessing.py`
+
+bash
+python -m unittest discover tests
+
+
+Folder Structure:
+
+* `/scripts/` — core logic (preprocessing, models, evaluation)
+* `/tests/` — test cases
+* `/results/` — generated plots
+* `/data/` — contains `heart_dataset.csv`
+
+Next Steps:
+
+* Perform hyperparameter tuning (GridSearchCV)
+* Add K-Fold Cross-validation
+* Train on larger datasets
+* Deploy model using Flask or Streamlit for real-time predictions
+
+
+
